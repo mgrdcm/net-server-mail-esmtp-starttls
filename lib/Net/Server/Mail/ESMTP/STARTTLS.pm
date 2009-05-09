@@ -21,6 +21,8 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
+Simple implementation of RFC2487 for Net::Server::Mail::ESMTP.
+
     use Net::Server::Mail::ESMTP;
     my $server = new IO::Socket::INET Listen => 1, LocalPort => 25;
 
@@ -68,28 +70,37 @@ sub reply {
 
 sub starttls {
     my $self = shift;
+    my ($args) = @_;
 
-    $self->reply( 220, '2.0.0 Ready to start TLS' );
+    if ( defined($args) && $args ne '' ) {
+        $self->reply( 501, 'Syntax error (no parameters allowed)' );
+        return;
+    }
 
-    IO::Socket::SSL->start_SSL(
+    $self->reply( 220, 'Ready to start TLS' );
+
+    my $sslret = IO::Socket::SSL->start_SSL(
         $self->{out},
         SSL_server         => 1,
         Timeout            => 30,
         SSL_startHandshake => 1
-      )
-      || die "Encountered an SSL handshake problem: "
-      . IO::Socket::SSL::errstr();
+    );
 
+    unless ($sslret) {
+        ## This is wrong.  Need to actually recover the connection, which is probably broken at this point.
+        $self->reply( 454,
+                'TLS not available due to temporary reason' . '['
+              . IO::Socket::SSL::errstr()
+              . ']' );
+    }
 
-  	my $ref = $self->{callback}->{STARTTLS};
-  	if (ref $ref eq 'ARRAY' && ref $ref->[0] eq 'CODE') {
-  		my $code = $ref->[0];
+    my $ref = $self->{callback}->{STARTTLS};
+    if ( ref $ref eq 'ARRAY' && ref $ref->[0] eq 'CODE' ) {
+        my $code = $ref->[0];
 
-  		my $ok = &$code($self);
-  	}
+        my $ok = &$code($self);
+    }
 
-    # should remove STARTTLS from registered extensions
-  	
     return ();
 }
 
@@ -99,7 +110,39 @@ sub starttls {
 
 Dan Moore, C<< <dan at moore.cx> >>
 
+=head1 TODO
+
+=head2 RFC Compliance
+
+=over
+
+=item Reset state after success
+
+Quoth RFC2487:  "Upon completion of the TLS handshake, the SMTP protocol is reset to
+   the initial state (the state in SMTP after a server issues a 220
+   service ready greeting). The server MUST discard any knowledge
+   obtained from the client, such as the argument to the EHLO command,
+   which was not obtained from the TLS negotiation itself."
+
+=item Remove STARTTLS from list of commands after success
+
+Quoth RFC2487:  "A server MUST NOT return the TLS extension
+   in response to an EHLO command received after a TLS handshake has
+   completed."
+
+=back
+
+Note, though, that both of the above can be done outside the library.
+
 =head1 BUGS
+
+=over
+
+=item Failed handshaking breaks things badly
+
+When the start_SSL call fails, the connection is probably broken, and the server usually dies.  Need to fix that.
+
+=back
 
 Please report any bugs or feature requests to C<bug-net-server-mail-esmtp-starttls at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-Server-Mail-ESMTP-STARTTLS>.  I will be notified, and then you'll
@@ -140,6 +183,7 @@ L<http://search.cpan.org/dist/Net-Server-Mail-ESMTP-STARTTLS/>
 
 =head1 ACKNOWLEDGEMENTS
 
+Net::Server::Mail rules, but I had to rely on Net::Server::Mail::ESMTP::AUTH as an example for how to write an ESMTP::Extension.  Thanks to the authors of both!
 
 =head1 COPYRIGHT & LICENSE
 

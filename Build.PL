@@ -10,6 +10,10 @@ my $builder = Module::Build->new(
     build_requires => {
         'Test::More' => 0,
     },
+    requires => {
+        'Net::Server::Mail::ESMTP::Extension' => 0,
+        'IO::Socket::SSL' => 0, 
+    },
     add_to_cleanup      => [ 'Net-Server-Mail-ESMTP-STARTTLS-*' ],
     create_makefile_pl => 'traditional',
 );

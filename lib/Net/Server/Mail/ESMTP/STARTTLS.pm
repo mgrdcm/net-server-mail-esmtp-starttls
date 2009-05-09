@@ -3,6 +3,10 @@ package Net::Server::Mail::ESMTP::STARTTLS;
 use warnings;
 use strict;
 
+use base qw(Net::Server::Mail::ESMTP::Extension);
+
+use IO::Socket::SSL;
+
 =head1 NAME
 
 Net::Server::Mail::ESMTP::STARTTLS - The great new Net::Server::Mail::ESMTP::STARTTLS!
@@ -15,38 +19,81 @@ Version 0.01
 
 our $VERSION = '0.01';
 
-
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+    use Net::Server::Mail::ESMTP;
+    my $server = new IO::Socket::INET Listen => 1, LocalPort => 25;
 
-Perhaps a little code snippet.
+    my $conn;
+    while($conn = $server->accept)
+    {
+      my $esmtp = new Net::Server::Mail::ESMTP socket => $conn;
 
-    use Net::Server::Mail::ESMTP::STARTTLS;
+      # activate STARTTLS extension
+      $esmtp->register('Net::Server::Mail::ESMTP::STARTTLS');
 
-    my $foo = Net::Server::Mail::ESMTP::STARTTLS->new();
-    ...
+      # adding STARTTLS handler
+      $esmtp->set_callback(STARTTLS => \&tls_started);
+      $esmtp->process;
+    }
 
-=head1 EXPORT
+    sub tls_started
+    {
+      my ($session) = @_;
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+      # now allow authentication
+      $session->register('Net::Server::Mail::ESMTP::AUTH');
+    }
+
 
 =head1 FUNCTIONS
 
-=head2 function1
+=cut
+
+sub verb {
+    return [ 'STARTTLS' => 'starttls' ];
+}
+
+sub keyword {
+    return 'STARTTLS';
+}
+
+sub reply {
+    return ( [ 'STARTTLS', ] );
+}
+
+=head2 starttls
 
 =cut
 
-sub function1 {
+sub starttls {
+    my $self = shift;
+
+    $self->reply( 220, '2.0.0 Ready to start TLS' );
+
+    IO::Socket::SSL->start_SSL(
+        $self->{out},
+        SSL_server         => 1,
+        Timeout            => 30,
+        SSL_startHandshake => 1
+      )
+      || die "Encountered an SSL handshake problem: "
+      . IO::Socket::SSL::errstr();
+
+
+  	my $ref = $self->{callback}->{STARTTLS};
+  	if (ref $ref eq 'ARRAY' && ref $ref->[0] eq 'CODE') {
+  		my $code = $ref->[0];
+
+  		my $ok = &$code($self);
+  	}
+
+    # should remove STARTTLS from registered extensions
+  	
+    return ();
 }
 
-=head2 function2
-
-=cut
-
-sub function2 {
-}
+*Net::Server::Mail::ESMTP::starttls = \&starttls;
 
 =head1 AUTHOR
 
@@ -104,4 +151,4 @@ under the same terms as Perl itself.
 
 =cut
 
-1; # End of Net::Server::Mail::ESMTP::STARTTLS
+1;    # End of Net::Server::Mail::ESMTP::STARTTLS

@@ -8,3 +8,4 @@ pm_to_blib*
 .lwpcookies
 Net-Server-Mail-ESMTP-STARTTLS-*
 cover_db
+pod2htm?.tmp

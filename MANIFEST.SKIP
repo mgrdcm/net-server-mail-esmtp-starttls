@@ -1,0 +1,10 @@
+^_build
+^Build$
+^blib
+~$
+\.bak$
+^MANIFEST\.SKIP$
+CVS
+.git
+pod2htm[d|i].tmp
+.swp$

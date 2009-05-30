@@ -21,7 +21,7 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Simple implementation of RFC2487 for Net::Server::Mail::ESMTP.
+Simple implementation of RFC3207 for Net::Server::Mail::ESMTP.
 
     use Net::Server::Mail::ESMTP;
     my $server = new IO::Socket::INET Listen => 1, LocalPort => 25;
@@ -52,13 +52,25 @@ Simple implementation of RFC2487 for Net::Server::Mail::ESMTP.
 
 =cut
 
+=head2 verb
+
+=cut
+
 sub verb {
     return [ 'STARTTLS' => 'starttls' ];
 }
 
+=head2 keyword
+
+=cut
+
 sub keyword {
     return 'STARTTLS';
 }
+
+=head2 reply
+
+=cut
 
 sub reply {
     return ( [ 'STARTTLS', ] );
@@ -87,9 +99,8 @@ sub starttls {
     );
 
     unless ($sslret) {
-        ## This is wrong.  Need to actually recover the connection, which is probably broken at this point.
         $self->reply( 454,
-                'TLS not available due to temporary reason' . '['
+                'TLS not available due to temporary reason' . ' ['
               . IO::Socket::SSL::errstr()
               . ']' );
     }
@@ -138,9 +149,9 @@ Note, though, that both of the above can be done outside the library.
 
 =over
 
-=item Failed handshaking breaks things badly
+=item Failed handshaking might break things badly
 
-When the start_SSL call fails, the connection is probably broken, and the server usually dies.  Need to fix that.
+When the start_SSL call fails, I'm not sure that things will work out so well.
 
 =back
 

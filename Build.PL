@@ -16,6 +16,12 @@ my $builder = Module::Build->new(
     },
     add_to_cleanup      => [ 'Net-Server-Mail-ESMTP-STARTTLS-*' ],
     create_makefile_pl => 'traditional',
+    meta_add => {
+        resources => {
+            repository => 'git://github.com/mgrdcm/net-server-mail-esmtp-starttls.git',
+        },
+    },
+
 );
 
 $builder->create_build_script();

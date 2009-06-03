@@ -123,7 +123,7 @@ Dan Moore, C<< <dan at moore.cx> >>
 
 =head1 TODO
 
-=head2 RFC Compliance
+=head2 RFC Compliance Issues
 
 =over
 
@@ -172,6 +172,10 @@ You can find documentation for this module with the perldoc command.
 You can also look for information at:
 
 =over 4
+
+=item * Net::Server::Mail::ESMTP::STARTTLS's GitHub page
+
+L<http://github.com/mgrdcm/net-server-mail-esmtp-starttls>
 
 =item * RT: CPAN's request tracker
 

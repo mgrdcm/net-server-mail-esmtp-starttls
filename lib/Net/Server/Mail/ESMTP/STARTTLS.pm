@@ -9,19 +9,19 @@ use IO::Socket::SSL;
 
 =head1 NAME
 
-Net::Server::Mail::ESMTP::STARTTLS - The great new Net::Server::Mail::ESMTP::STARTTLS!
+Net::Server::Mail::ESMTP::STARTTLS - Simple implementation of STARTTLS (RFC3207) for Net::Server::Mail::ESMTP
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
-Simple implementation of RFC3207 for Net::Server::Mail::ESMTP.
+Simple implementation of STARTTLS (RFC3207) for Net::Server::Mail::ESMTP.
 
     use Net::Server::Mail::ESMTP;
     my $server = new IO::Socket::INET Listen => 1, LocalPort => 25;
